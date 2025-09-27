@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Merriweather, Inter } from "next/font/google";
 import "./globals.css";
-import MainHeader from "@/components/main-header/MainHeader";
+import MainHeader from "@/components/common/MainHeader";
 
 const merriweatherSans = Merriweather({
   variable: "--font-merriweather",
