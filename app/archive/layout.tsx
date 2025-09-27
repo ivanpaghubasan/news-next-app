@@ -9,9 +9,9 @@ export default function ArchiveLayout({ archive, latest }: Props) {
   return (
     <div>
       <h1 className='text-3xl mb-5'>News Archive</h1>
-      {latest}
-      <hr />
       {archive}
+      <hr />
+      {latest}
     </div>
   )
 }
