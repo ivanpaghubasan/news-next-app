@@ -15,7 +15,7 @@ export default function NavLink({ href, children }: Props) {
   return (
     <Link
       href={href}
-      className={pathname.startsWith(pathname) ? 'active' : undefined}
+      className={pathname.startsWith(href) ? 'active' : undefined}
     >
       {children}
     </Link>
