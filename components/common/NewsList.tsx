@@ -7,6 +7,7 @@ type Props = {
 }
 
 export default function NewsList({ news }: Props) {
+  
   return (
     <ul className="news-list">
       {news.map((news) => (

@@ -41,6 +41,12 @@ export default async function FilteredNewsPage({ params }: Props) {
     newsContent = <NewsList news={news} />;
   }
 
+  if ((selectedYear && !getAvailableNewsYears().includes(Number(selectedYear))) ||
+    (selectedMonth && !getAvailableNewsMonths(Number(selectedYear)).includes(Number(selectedMonth)))
+  ) {
+    throw new Error("Invalid filter");
+  }
+
   return (
     <>
       <header id="archive-header">
