@@ -21,15 +21,15 @@ export default async function FilteredNewsPage({ params }: Props) {
   const selectedYear = filter?.[0];
   const selectedMonth = filter?.[1];
   let news: News[] = [];
-  let links = getAvailableNewsYears();
-
+  let links = await getAvailableNewsYears();
+  console.log({links})
   if (selectedYear && !selectedMonth) {
-    news = getNewsForYear(Number(selectedYear));
-    links = getAvailableNewsMonths(Number(selectedYear));
+    news = await getNewsForYear(selectedYear);
+    links = await getAvailableNewsMonths(selectedYear);
   }
 
   if (selectedYear && selectedMonth) {
-    news = getNewsForYearAndMonth(Number(selectedYear), Number(selectedMonth));
+    news = await getNewsForYearAndMonth(selectedYear, selectedMonth);
     links = [];
   }
 
@@ -41,8 +41,8 @@ export default async function FilteredNewsPage({ params }: Props) {
     newsContent = <NewsList news={news} />;
   }
 
-  if ((selectedYear && !getAvailableNewsYears().includes(Number(selectedYear))) ||
-    (selectedMonth && !getAvailableNewsMonths(Number(selectedYear)).includes(Number(selectedMonth)))
+  if ((selectedYear && links.includes(selectedYear)) ||
+    (selectedMonth && links.includes(selectedMonth))
   ) {
     throw new Error("Invalid filter");
   }

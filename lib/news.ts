@@ -1,47 +1,105 @@
-import { DUMMY_NEWS } from '@/dummy-news';
-import { News } from '@/schemas/newsSchema';
+import { monthsListSchema, News, newsListSchema, newsSchema, yearsListSchema } from '@/schemas/newsSchema';
+import sql from 'better-sqlite3';
 
-export function getAllNews() {
-  return DUMMY_NEWS;
+const db = sql('data.db');
+
+export async function getAllNews(): Promise<News[]> {
+  const news = db.prepare('SELECT * FROM news').all();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const parsed = newsListSchema.safeParse(news);
+   if (!parsed.success) {
+    throw new Error("Error getting news years data.");
+  }
+
+  return parsed.data;
 }
 
-export function getLatestNews() {
-  return DUMMY_NEWS.slice(0, 3);
+export async function getNewsItem(slug: string): Promise<News> {
+  const newsItem = db.prepare('SELECT * FROM news WHERE slug = ?').get(slug);
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const parsed = newsSchema.safeParse(newsItem);
+  if (!parsed.success) {
+    throw new Error("Error getting news data." + parsed.error.message);
+  }
+
+  return parsed.data;
 }
 
-export function getAvailableNewsYears() {
-  return DUMMY_NEWS.reduce((years: number[], news) => {
-    const year = new Date(news.date).getFullYear();
-    if (!years.includes(year)) {
-      years.push(year);
-    }
-    return years;
-  }, []).sort((a, b) => b - a);
+export async function getLatestNews(): Promise<News[]> {
+  const latestNews = db
+    .prepare('SELECT * FROM news ORDER BY date DESC LIMIT 3')
+    .all();
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const parsed = newsListSchema.safeParse(latestNews)
+  if (!parsed.success) {
+    throw new Error("Error getting news data.");
+  }
+
+  return parsed.data;
 }
 
-export function getAvailableNewsMonths(year: number) {
-  return DUMMY_NEWS.reduce((months: number[], news) => {
-    const newsYear = new Date(news.date).getFullYear();
-    if (newsYear === +year) {
-      const month = new Date(news.date).getMonth();
-      if (!months.includes(month)) {
-        months.push(month + 1);
-      }
-    }
-    return months;
-  }, []).sort((a, b) => b - a);
+export async function getAvailableNewsYears() {
+  const years = db
+    .prepare("SELECT DISTINCT strftime('%Y', date) as year FROM news")
+    .all()
+    
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const parsed = yearsListSchema.safeParse(years);
+   if (!parsed.success) {
+    throw new Error("Error getting news years data.");
+  }
+
+  return parsed.data.map((year) => year.year);
 }
 
-export function getNewsForYear(year: number) {
-  return DUMMY_NEWS.filter(
-    (news) => new Date(news.date).getFullYear() === +year
-  );
+export function getAvailableNewsMonths(year: string) {
+  const months = db
+    .prepare(
+      "SELECT DISTINCT strftime('%m', date) as month FROM news WHERE strftime('%Y', date) = ?"
+    )
+    .all(year);
+  
+  const parsed = monthsListSchema.safeParse(months);
+   if (!parsed.success) {
+    throw new Error("Error getting news years data.");
+  }
+
+  return parsed.data.map((month) => month.month);
 }
 
-export function getNewsForYearAndMonth(year: number, month: number) {
-  return DUMMY_NEWS.filter((news) => {
-    const newsYear = new Date(news.date).getFullYear();
-    const newsMonth = new Date(news.date).getMonth() + 1;
-    return newsYear === +year && newsMonth === +month;
-  });
+export async function getNewsForYear(year: string): Promise<News[]> {
+  const news = db
+    .prepare(
+      "SELECT * FROM news WHERE strftime('%Y', date) = ? ORDER BY date DESC"
+    )
+    .all(year);
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  const parsed = newsListSchema.safeParse(news);
+  if (!parsed.success) {
+    throw new Error("Error getting news years data.");
+  }
+
+  return parsed.data;
+}
+
+export async function getNewsForYearAndMonth(year: string, month: string): Promise<News[]> {
+  const news = db
+    .prepare(
+      "SELECT * FROM news WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ? ORDER BY date DESC"
+    )
+    .all(year, month);
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const parsed = newsListSchema.safeParse(news);
+   if (!parsed.success) {
+    throw new Error("Error getting news years data.");
+  }
+
+  return parsed.data;
 }
